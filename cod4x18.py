@@ -49,6 +49,8 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
         """
         Called after the parser is created before run().
         """
+		self.clients.newClient('-1', guid='WORLD', name='World', hide=True, pbid='WORLD')
+		
         blank = self.write('sv_usesteam64id  1', maxRetries=3)
         data = self.write('plugininfo b3hide', maxRetries=3)
         if data and len(data) < 50:
