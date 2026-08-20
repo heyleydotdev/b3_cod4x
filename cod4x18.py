@@ -20,9 +20,10 @@
 #           0.1 - Initial release
 #           0.2 - Added support for B3Hide plugin, force ID64
 #           0.3 - Add player status methods
+#           0.4 - Correct status parsing regexes
 
 __author__ = 'Leiizko, heyleydotdev'
-__version__ = '0.3'
+__version__ = '0.4'
 
 
 import b3.clients
