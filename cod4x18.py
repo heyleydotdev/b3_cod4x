@@ -171,7 +171,7 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
         Returns a dict having players' id for keys and players' ping for values.
         :param filter_client_ids: If filter_client_id is an iterable, only return values for the given client ids.
         """
-        data = self.write('b3status')
+        data = self.write('status')
 
         if not data:
             return {}
@@ -193,7 +193,7 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
         """
         Returns a dict having players' id for keys and players' scores for values.
         """
-        data = self.write('b3status')
+        data = self.write('status')
 
         if not data:
             return {}
@@ -224,7 +224,7 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
             return self.PunkBuster.getPlayerList()
 
         else:
-            data = self.write('b3status', maxRetries=maxRetries)
+            data = self.write('status', maxRetries=maxRetries)
 
             if not data:
                 return {}
@@ -256,7 +256,7 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
         """
         Return the current map/level name.
         """
-        data = self.write('b3status')
+        data = self.write('status')
 
         if not data:
             return None
