@@ -35,6 +35,25 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
     gameName = 'cod4'
     IpsOnly = False
     _guidLength = 0
+
+    _reMapNameFromStatus = re.compile(r'^map\s*:\s*(?P<map>.+)$', re.IGNORECASE)
+    
+    _regPlayer = re.compile(
+        r'^\s*(?P<slot>[0-9]+)\s+'
+        r'(?P<score>[0-9-]+)\s+'
+        r'(?P<ping>[0-9]+)\s+'
+        r'(?P<guid>[0-9]+)\s+'
+        r'(?P<steam>[0-9]+)\s+'
+        r'(?P<name>.*?)\s+'
+        r'(?P<last>[0-9]+)\s+'
+        r'(?P<ip>(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}'
+        r'(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])):?'
+        r'(?P<port>-?[0-9]{1,5})\s*'
+        r'(?P<qport>-?[0-9]{1,5})\s+'
+        r'(?P<rate>[0-9]+)$',
+        re.IGNORECASE
+    )
+    
     _commands = {
         'message': 'tell %(cid)s %(message)s',
         'say': 'say %(message)s',
@@ -57,33 +76,7 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
             hide=True,
             pbid='WORLD'
         )
-
-        blank = self.write('sv_usesteam64id  1', maxRetries=3)
-        data = self.write('plugininfo b3hide', maxRetries=3)
-
-        if data and len(data) < 50:
-            self._regPlayer = re.compile(
-                r'^\s*(?P<slot>[0-9]+)\s+'
-                r'(?P<score>[0-9-]+)\s+'
-                r'(?P<ping>[0-9]+)\s+'
-                r'(?P<guid>[0-9]+)\s+'
-                r'(?P<steam>[0-9]+)\s+'
-                r'(?P<name>.*?)\s+'
-                r'(?P<ip>(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}'
-                r'(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])):?'
-                r'(?P<port>-?[0-9]{1,5})\s*',
-                re.IGNORECASE | re.VERBOSE
-            )
-
-            self._regPlayerShort = re.compile(
-                r'^\s*(?P<slot>[0-9]+)\s+'
-                r'(?P<score>[0-9-]+)\s+'
-                r'(?P<ping>[0-9]+)\s+'
-                r'(?P<guid>[0-9]+)\s+'
-                r'(?P<steam>[0-9]+)\s+'
-                r'(?P<name>.*?)\s+',
-                re.IGNORECASE | re.VERBOSE
-            )
+        self.write('sv_usesteam64id  1', maxRetries=3)
 
     def unban(self, client, reason='', admin=None, silent=False, *kwargs):
         """
@@ -257,14 +250,12 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
         Return the current map/level name.
         """
         data = self.write('status')
-
         if not data:
             return None
-
-        line = data.split('\n')[0]
-        m = re.match(self._reMapNameFromStatus, line.strip())
-
-        if m:
-            return str(m.group('map'))
-
+    
+        for line in data.split('\n'):
+            m = re.match(self._reMapNameFromStatus, line.strip())
+            if m:
+                return str(m.group('map'))
+    
         return None
