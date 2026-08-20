@@ -38,7 +38,7 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
     _guidLength = 0
 
     _reMapNameFromStatus = re.compile(r'^map\s*:\s*(?P<map>.+)$', re.IGNORECASE)
-    
+
     _regPlayer = re.compile(
         r'^\s*(?P<slot>[0-9]+)\s+'
         r'(?P<score>[0-9-]+)\s+'
@@ -54,7 +54,7 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
         r'(?P<rate>[0-9]+)$',
         re.IGNORECASE
     )
-    
+
     _commands = {
         'message': 'tell %(cid)s %(message)s',
         'say': 'say %(message)s',
@@ -253,10 +253,10 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
         data = self.write('status')
         if not data:
             return None
-    
+
         for line in data.split('\n'):
             m = re.match(self._reMapNameFromStatus, line.strip())
             if m:
                 return str(m.group('map'))
-    
+
         return None
