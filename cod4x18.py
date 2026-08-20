@@ -19,9 +19,10 @@
 # CHANGELOG:
 #           0.1 - Initial release
 #           0.2 - Added support for B3Hide plugin, force ID64
+#			0.3 - Add player status methods
 
-__author__ = 'Leiizko'
-__version__ = '0.2'
+__author__ = 'Leiizko, heyleydotdev'
+__version__ = '0.3'
 
 
 import b3.clients
@@ -117,3 +118,90 @@ class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
                                                               'duration': duration,
                                                               'admin': admin}, client))
         client.disconnect()
+
+	def getPlayerPings(self, filter_client_ids=None):
+        """
+        Returns a dict having players' id for keys and players' ping for values.
+        :param filter_client_ids: If filter_client_id is an iterable, only return values for the given client ids.
+        """
+        data = self.write('b3status')
+        if not data:
+            return {}
+
+        players = {}
+        for line in data.split('\n'):
+            m = re.match(self._regPlayerShort, line)
+            if not m:
+                m = re.match(self._regPlayer, line.strip())
+            
+            if m:
+                players[str(m.group('slot'))] = int(m.group('ping'))
+        
+        return players
+
+    def getPlayerScores(self):
+        """
+        Returns a dict having players' id for keys and players' scores for values.
+        """
+        data = self.write('b3status')
+        if not data:
+            return {}
+
+        players = {}
+        for line in data.split('\n'):
+            #self.debug('Line: ' + line + "-")
+            m = re.match(self._regPlayerShort, line)
+            if not m:
+                m = re.match(self._regPlayer, line.strip())
+            
+            if m:  
+                players[str(m.group('slot'))] = int(m.group('score'))
+            #elif '------' not in line and 'map: ' not in line and 'num score ping' not in line:
+                #self.verbose('getPlayerScores() = Line did not match format: %s' % line)
+        
+        return players
+
+    def getPlayerList(self, maxRetries=None):
+        """
+        Query the game server for connected players.
+        Return a dict having players' id for keys and players' data as another dict for values.
+        """
+        if self.PunkBuster:
+            return self.PunkBuster.getPlayerList()
+        else:
+            data = self.write('b3status', maxRetries=maxRetries)
+            if not data:
+                return {}
+
+            players = {}
+            lastslot = -1
+            for line in data.split('\n')[3:]:
+                m = re.match(self._regPlayer, line.strip())
+                if m:
+                    d = m.groupdict()
+                    if int(m.group('slot')) > lastslot:
+                        lastslot = int(m.group('slot'))
+                        d['pbid'] = None
+                        players[str(m.group('slot'))] = d
+                        
+                    else:
+                        self.debug('Duplicate or incorrect slot number - '
+                                   'client ignored %s last slot %s' % (m.group('slot'), lastslot))
+
+        return players
+
+    def getMap(self):
+        """
+        Return the current map/level name.
+        """
+        data = self.write('b3status')
+        if not data:
+            return None
+
+        line = data.split('\n')[0]
+        m = re.match(self._reMapNameFromStatus, line.strip())
+        if m:
+            return str(m.group('map'))
+
+        return None
+
