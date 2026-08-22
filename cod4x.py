@@ -32,7 +32,7 @@ import b3.parsers.cod4
 import re
 
 
-class Cod4X18Parser(b3.parsers.cod4.Cod4Parser):
+class Cod4XParser(b3.parsers.cod4.Cod4Parser):
     gameName = 'cod4'
     IpsOnly = False
     _guidLength = 0
