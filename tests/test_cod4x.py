@@ -8,8 +8,11 @@ against status text shaped exactly like what CoD4X's SV_Status_f() emits
 
 Run with: pytest tests/
 Adjust COD4X_PATH (env var) if cod4x.py doesn't live at the repo root.
+
+Python 2.7 compatible: uses `imp.load_source` instead of `importlib.util`
+(which does not exist in Python 2).
 """
-import importlib.util
+import imp
 import os
 import sys
 import unittest
@@ -26,9 +29,9 @@ COD4X_PATH = os.environ.get(
 
 
 def _load_cod4x_module():
-    spec = importlib.util.spec_from_file_location('cod4x', COD4X_PATH)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    # imp.load_source both loads and registers the module; the first arg
+    # is the name it will be given in sys.modules.
+    module = imp.load_source('cod4x', COD4X_PATH)
     return module
 
 
@@ -208,7 +211,7 @@ class GetPlayerListTests(unittest.TestCase):
         parser = make_parser(status)
         players = parser.getPlayerList()
 
-        self.assertEqual(set(players.keys()), {'0', '1'})
+        self.assertEqual(set(players.keys()), set(['0', '1']))
         self.assertEqual(players['1']['name'], 'TestPlayerTwo')
         self.assertEqual(players['1']['steam'], '90000000000000001')
 
