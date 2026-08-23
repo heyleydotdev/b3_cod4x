@@ -1,0 +1,29 @@
+name: cod4x parser tests
+
+on:
+  push:
+    paths:
+      - "cod4x.py"
+      - "tests/**"
+      - ".github/workflows/tests.yml"
+  pull_request:
+    paths:
+      - "cod4x.py"
+      - "tests/**"
+      - ".github/workflows/tests.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: python:2.7-buster
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install test dependencies
+        run: pip install "pytest<5"
+
+      - name: Run tests
+        run: python -m pytest tests/ -v
