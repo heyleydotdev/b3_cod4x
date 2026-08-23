@@ -21,9 +21,21 @@
 #           0.2 - Added support for B3Hide plugin, force ID64
 #           0.3 - Add player status methods
 #           0.4 - Correct status parsing regexes
+#           0.5 - Rebuilt _regPlayer/_regPlayerShort against the actual
+#                 SV_Status_f() engine source (non-legacy mode only,
+#                 legacy mode retired). Fixes:
+#                   - map line never matched (padded "map     :" vs "map:")
+#                   - getMap() only checked the first status line
+#                   - lastmsg value leaking into the parsed name
+#                   - steamid column not separated from guid/name
+#                   - trailing "^7" color-reset now stripped from name
+#                   - dropped _regPlayerShort; getPlayerPings()/getPlayerScores()
+#                     now match with _regPlayer directly (the short variant
+#                     added no real value and risked falling back to the
+#                     broken base-class regex if ever left undefined)
 
 __author__ = 'Leiizko, heyleydotdev'
-__version__ = '0.4'
+__version__ = '0.5'
 
 
 import b3.clients
@@ -39,13 +51,15 @@ class Cod4XParser(b3.parsers.cod4.Cod4Parser):
 
     _reMapNameFromStatus = re.compile(r'^map\s*:\s*(?P<map>.+)$', re.IGNORECASE)
 
+    # matches the non-legacy status row:
+    # num score ping playerid steamid name lastmsg address qport rate
     _regPlayer = re.compile(
         r'^\s*(?P<slot>[0-9]+)\s+'
         r'(?P<score>[0-9-]+)\s+'
         r'(?P<ping>[0-9]+)\s+'
         r'(?P<guid>[0-9]+)\s+'
         r'(?P<steam>[0-9]+)\s+'
-        r'(?P<name>.*?)\s+'
+        r'(?P<name>.*?)(?:\^7)?\s+'
         r'(?P<last>[0-9]+)\s+'
         r'(?P<ip>(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}'
         r'(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])):?'
@@ -173,10 +187,7 @@ class Cod4XParser(b3.parsers.cod4.Cod4Parser):
         players = {}
 
         for line in data.split('\n'):
-            m = re.match(self._regPlayerShort, line)
-
-            if not m:
-                m = re.match(self._regPlayer, line.strip())
+            m = re.match(self._regPlayer, line.strip())
 
             if m:
                 players[str(m.group('slot'))] = int(m.group('ping'))
@@ -196,10 +207,7 @@ class Cod4XParser(b3.parsers.cod4.Cod4Parser):
 
         for line in data.split('\n'):
             # self.debug('Line: ' + line + "-")
-            m = re.match(self._regPlayerShort, line)
-
-            if not m:
-                m = re.match(self._regPlayer, line.strip())
+            m = re.match(self._regPlayer, line.strip())
 
             if m:
                 players[str(m.group('slot'))] = int(m.group('score'))
